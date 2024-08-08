@@ -1,0 +1,23 @@
+groups:
+- name: node_exporter
+  rules:
+  - alert: NginxAlert
+    expr: nginx_up == 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Сервис NGINX на сервере {{ $labels.instance }} недоступен"
+      description: "Возможно сервис NGINX упал или сервер недоступен\n VALUE = {{ $value }}\n LABELS = {{ $labels }}"
+
+- name: DiskSpace
+  rules:
+  - alert: HostOutOfDiskSpace
+    expr: ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 40 and ON (instance, device, mountpoint) node_filesystem_readonly == 0) * on(instance) group_left (nodename) node_uname_info{nodename=~".+"}
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Место на диске ограничено (instance {{ $labels.instance }})"
+      description: "На диске мало места (< 40% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
